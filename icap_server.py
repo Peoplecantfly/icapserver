@@ -34,7 +34,7 @@ class ICAPServer(SocketServer.TCPServer):
 class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 	""" ICAP request handler base class.
 		You have to subclass it and provide methods for each service
-		endpoint. Every endpoint MUST have an _OPTION method, 
+		endpoint. Every endpoint MUST have an _OPTION method,
 		and _REQMOD or a _RESPMOD method or both.
 	"""
 
@@ -290,8 +290,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 	def parse_request(self):
 		""" Parse a request (internal).
 			The request should be stored in self.raw_requestline; the results
-			are in self.command, self.request_uri, self.request_version and
-			self.headers.
+			are in self.command, self.request_uri, self.request_version and self.headers.
 			Return True for success, False for failure; on failure, an
 			error is sent back.
 		"""
