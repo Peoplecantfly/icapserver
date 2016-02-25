@@ -366,9 +366,14 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		self.encapsulated = {}
 		if self.command in ['RESPMOD', 'REQMOD']:
-			for enc in self.headers.get('encapsulated', [''])[0].split(','):
-				# TODO: raise ICAPError if Encapsulated is malformed or empty
-				k,v = enc.strip().split('=')
+			_encapsulated = self.headers.get('encapsulated', [''])[0].split(',')
+			if not _encapsulated:
+				raise ICAPError(500, "Encapsulated is empty.")
+			for enc in _encapsulated:
+				try:
+					k,v = enc.strip().split('=')
+				except:
+					raise ICAPError(500, "Encapsulated is malformed.")
 				self.encapsulated[k] = int(v)
 
 		self.preview = self.headers.get('preview', [None])[0]
@@ -389,6 +394,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 				self.enc_res_headers = self._read_headers()
 			if self.encapsulated.has_key('res-body'):
 				self.has_body = True
+		# TODO: Parse OPTIONS
 		# Else: OPTIONS. No encapsulation.
 
 		# Parse service name
