@@ -217,7 +217,6 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		self.enc_request = request
 
 	# TODO: write add_* and set_* methods
-	# TODO: also add convenient mode to query these
 	def set_enc_header(self, header, value):
 		""" Set an encapsulated header to the given value
 			Multiple sets will cause the header to be sent multiple times.
@@ -394,11 +393,9 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 				self.enc_res_headers = self._read_headers()
 			if self.encapsulated.has_key('res-body'):
 				self.has_body = True
-		# TODO: Parse OPTIONS
 		# Else: OPTIONS. No encapsulation.
 
 		# Parse service name
-		# TODO: document "url routing"
 		self.servicename = urlparse.urlparse(self.request_uri)[2].strip('/')
 
 	def handle(self):
@@ -484,7 +481,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			short, long = '???', '???'
 		if message is None:
 			message = short
-		explain = long
+
 		self.log_error("code %d, message %s", code, message)
 
 		# No encapsulation
@@ -511,7 +508,6 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			short, long = '???', '???'
 		if message is None:
 			message = short
-		explain = long
 
 		# No encapsulation
 		self.enc_req = None
