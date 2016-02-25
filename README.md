@@ -82,7 +82,7 @@ checking to-be-downloaded files for viruses, watermarking images or
 audio files, placing ad banners, or otherwise modifying the content
 and/or the headers of the request.
 
-Some information you can get from the ICAP request by examining
+There are information you can get from the ICAP request by examining
 certain fields of the handler object:
 
 * command: the current ICAP command
