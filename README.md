@@ -104,7 +104,7 @@ requests:
 * send_error(error_code): Sends and entire ICAP error response
 * no_adaptation_required(): Sends 204 No adaptation to the client.
 * cont(): Sends an ICAP 100 Continue response to the client.
-* read_chunk(): Reads a chunk from the client. Be aware that this call
+* read_chunk(): Reads a chunk from the client. Be aware that this call  
 	blocks. If there is no available data on the line, and Connection: 
 	keep-alive is used, it will cause the server to hang.
 * set_icap_response(code): Sets the ICAP response.
