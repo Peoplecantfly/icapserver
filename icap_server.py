@@ -38,15 +38,13 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		and _REQMOD or a _RESPMOD method or both.
 	"""
 
-	# The version of the ICAP protocol we support.
+	# The version of the ICAP protocol.
 	protocol_version = "ICAP/1.0"
 
 	# The version of the Python.
 	_sys_version = "Python/" + sys.version.split()[0]
 
-	# The server software version.  You may want to override this.
-	# The format is multiple whitespace-separated strings,
-	# where each string is of the form name[/version].
+	# The server software version.
 	_server_version = "ICAP/" + __version__
 
 	# Table mapping response codes to messages; entries have the
@@ -103,8 +101,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 	_weekdayname = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 	_monthname = [None,
-				 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-				 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+				'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+				'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 	def _read_status(self):
 		""" Read a HTTP or ICAP status line from input stream """
@@ -194,7 +192,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			response. This method can be called to set encapsulated HTTP
 			response's status line.
 		"""
-		# TODO: some semantic checking might be OK
+		# TODO: some semantic checking
 		self.enc_status = status
 
 	def set_enc_request(self, request):
@@ -204,7 +202,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			response. This method can be called to set encapsulated HTTP
 			request's request line.
 		"""
-		# TODO: some semantic checking might be OK
+		# TODO: some semantic checking
 		self.enc_request = request
 
 	# TODO: write add_* and set_* methods
