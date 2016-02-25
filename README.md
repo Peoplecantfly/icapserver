@@ -17,7 +17,7 @@ What is ICAP?
 
 Internet Content Adaptation Protocol (ICAP)
 
-From RFC 3507
+From RFC 3507  
 ICAP, the Internet Content Adaption Protocol, is a protocol aimed at
 providing simple object-based content vectoring for HTTP services.
 ICAP is, in essence, a lightweight protocol for executing a "remote
