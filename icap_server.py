@@ -17,7 +17,8 @@ import urlparse
 import SocketServer
 
 class ICAPError(Exception):
-	""" Signals a protocol error """
+	""" Signals a protocol error.
+	"""
 	def __init__(self, code=500, message=None):
 		if message == None:
 			message = BaseICAPRequestHandler._responses[code]
@@ -27,7 +28,7 @@ class ICAPError(Exception):
 
 class ICAPServer(SocketServer.TCPServer):
 	""" ICAP Server
-		This is a simple TCPServer, that allows address reuse
+		This is a simple TCPServer, that allows address reuse.
 	"""
 	allow_reuse_address = 1
 
@@ -88,7 +89,9 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		414: ('Request-URI Too Long', 'URI is too long.'),
 		415: ('Unsupported Media Type', 'Entity body in unsupported format.'),
 		416: ('Requested Range Not Satisfiable', 'Cannot satisfy request range.'),
-		417: ('Expectation Failed', 'Expect condition could not be satisfied.'),
+		417: ('Expectation Failed', 'Expected condition could not be satisfied.'),
+		451: ('451 Unavailable For Legal Reasons', 'Resource access is denied for legal reasons, \
+													e.g. censorship or government-mandated blocked access.'),
 
 		500: ('Internal Server Error', 'Server got itself in trouble'),
 		501: ('Not Implemented', 'Server does not support this operation'),
@@ -105,15 +108,21 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 				'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 	def _read_status(self):
-		""" Read a HTTP or ICAP status line from input stream """
+		""" Read a HTTP or ICAP status line from input stream.
+		"""
+
 		return self.rfile.readline().strip().split(' ', 2)
 
 	def _read_request(self):
-		""" Read a HTTP or ICAP request line from input stream """
+		""" Read a HTTP or ICAP request line from input stream.
+		"""
+
 		return self.rfile.readline().strip().split(' ', 2)
 
 	def _read_headers(self):
-		""" Read a sequence of header lines """
+		""" Read a sequence of header lines.
+		"""
+
 		headers = {}
 		while True:
 			line = self.rfile.readline().strip()
@@ -169,6 +178,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			When finished writing, an empty chunk with data='' must
 			be written.
 		"""
+
 		l = hex(len(data))[2:]
 		self.wfile.write(l + '\r\n' + data + '\r\n')
 
@@ -178,6 +188,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			to read the entire message body. After this command, read_chunk
 			can safely be called again.
 		"""
+
 		if self.ieof:
 			raise ICAPError(500, 'Tried to continue on ieof condition')
 
@@ -192,7 +203,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			response. This method can be called to set encapsulated HTTP
 			response's status line.
 		"""
-		# TODO: some semantic checking
+
 		self.enc_status = status
 
 	def set_enc_request(self, request):
@@ -202,7 +213,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			response. This method can be called to set encapsulated HTTP
 			request's request line.
 		"""
-		# TODO: some semantic checking
+
 		self.enc_request = request
 
 	# TODO: write add_* and set_* methods
@@ -211,17 +222,28 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		""" Set an encapsulated header to the given value
 			Multiple sets will cause the header to be sent multiple times.
 		"""
+
 		self.enc_headers[header] = self.enc_headers.get(header, []) + [value]
 
-	def set_icap_response(self, code):
-		""" Sets the ICAP response's status line and response code """
-		self.icap_response = 'ICAP/1.0 ' + str(code) + ' ' + self._responses[code][0]
+	def set_icap_response(self, code, message=None):
+		""" Sets the ICAP response's status line and response code.
+		"""
+
+		try:
+			short, long = self._responses[code]
+		except KeyError:
+			short, long = '???', '???'
+		if message is None:
+			message = short
+
+		self.icap_response = 'ICAP/1.0 ' + str(code) + ' ' + message
 		self.icap_response_code = code
 
 	def set_icap_header(self, header, value):
 		""" Set an ICAP header to the given value
 			Multiple sets will cause the header to be sent multiple times.
 		"""
+
 		self.icap_headers[header] = self.icap_headers.get(header, []) + [value]
 
 	def send_headers(self, has_body = False):
@@ -229,6 +251,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			Assembles the Encapsulated header, so it's need the information
 			of wether an encapsulated message body is present.
 		"""
+
 		enc_header = None
 		enc_req_stat = ''
 		if self.enc_request != None:
@@ -292,6 +315,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			Return True for success, False for failure; on failure, an
 			error is sent back.
 		"""
+
 		self.command = None
 		self.request_version = version = 'ICAP/1.0'
 
@@ -377,6 +401,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			default behavior, one connection may mean multiple ICAP
 			requests.
 		"""
+
 		self.close_connection = False
 		while not self.close_connection:
 			self.handle_one_request()
@@ -460,8 +485,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		self.enc_req = None
 		self.enc_res_stats = None
 
-		self.set_icap_response(code) # TODO: message
-		self.set_icap_header('Connection', 'close') # TODO: why?
+		self.set_icap_response(code, message)
+		self.set_icap_header('Connection', 'close')
 		self.send_headers()
 
 	def send_enc_error(self, code, message=None, body='', contenttype='text/html'):
@@ -485,7 +510,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		# No encapsulation
 		self.enc_req = None
 
-		self.set_icap_response(200) # TODO: message
+		self.set_icap_response(200)
 		self.set_enc_status('HTTP/1.1 %s %s' % (str(code), message))
 		self.set_enc_header('Content-Type', contenttype)
 		self.set_enc_header('Content-Length', str(len(body)))
@@ -529,11 +554,15 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 						  format%args))
 
 	def version_string(self):
-		""" Return the server software version string. """
+		""" Return the server software version string.
+		"""
+
 		return self._server_version + ' ' + self._sys_version
 
 	def date_time_string(self, timestamp=None):
-		""" Return the current date and time formatted for a message header. """
+		""" Return the current date and time formatted for a message header.
+		"""
+
 		if timestamp is None:
 			timestamp = time.time()
 		year, month, day, hh, mm, ss, wd, y, z = time.gmtime(timestamp)
@@ -544,7 +573,9 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		return s
 
 	def log_date_time_string(self):
-		""" Return the current time formatted for logging. """
+		""" Return the current time formatted for logging.
+		"""
+
 		now = time.time()
 		year, month, day, hh, mm, ss, x, y, z = time.localtime(now)
 		s = "%02d/%3s/%04d %02d:%02d:%02d" % (
@@ -566,6 +597,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			a 204 preview response is sent. Otherwise a copy of the message
 			is returned to the client.
 		"""
+
 		if '204' in self.allow or self.preview != None:
 			# We MUST read everything the client sent us
 			if self.has_body:
