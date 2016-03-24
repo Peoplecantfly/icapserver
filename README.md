@@ -11,6 +11,7 @@ Just copy icap_server.py file onto your PYTHON_PATH,
 or the directory of your python module.
 
 TODO: add setup.py
+TODO: add tutorial
 
 What is ICAP?
 -------------
