@@ -21,7 +21,8 @@ class ICAPError(Exception):
 	"""
 	def __init__(self, code=500, message=None):
 		if message == None:
-			message = BaseICAPRequestHandler._responses[code]
+			short, long = BaseICAPRequestHandler._responses[code]
+			message = short
 
 		super(ICAPError, self).__init__(message)
 		self.code = code
@@ -234,6 +235,9 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			short, long = '???', '???'
 		if message is None:
 			message = short
+
+		if not isinstance(message, str):
+			raise ICAPError(500)
 
 		self.icap_response = 'ICAP/1.0 ' + str(code) + ' ' + message
 		self.icap_response_code = code
@@ -482,7 +486,10 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if message is None:
 			message = short
 
-		self.log_error("code %d, message %s", code, message)
+		if not isinstance(message, str):
+			raise ICAPError(500)
+
+		self.log_error("Code: %d, Message: %s", code, message)
 
 		# No encapsulation
 		self.enc_req = None
@@ -508,6 +515,9 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			short, long = '???', '???'
 		if message is None:
 			message = short
+
+		if not isinstance(message, str):
+			raise ICAPError(500)
 
 		# No encapsulation
 		self.enc_req = None
