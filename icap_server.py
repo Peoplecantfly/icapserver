@@ -283,7 +283,11 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		enc_header_str = enc_req_stat
 		for k in self.enc_headers:
+			if not isinstance(k, str):
+				raise ICAPError(500, 'Header must be string, not %s.' % type(k))
 			for v in self.enc_headers[k]:
+				if not isinstance(v, str):
+					raise ICAPError(500, 'Header value must be string, not %s.' % type(v))
 				enc_header_str += k + ': ' + v + '\r\n'
 		if enc_header_str != '':
 			enc_header_str += '\r\n'
@@ -296,7 +300,11 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		icap_header_str = ''
 		for k in self.icap_headers:
+			if not isinstance(k, str):
+				raise ICAPError(500, 'Header must be string, not %s.' % type(k))
 			for v in self.icap_headers[k]:
+				if not isinstance(v, str):
+					raise ICAPError(500, 'Header value must be string, not %s.' % type(v))
 				icap_header_str += k + ': ' + v + '\r\n'
 				if k.lower() == 'connection' and v.lower() == 'close':
 					self.close_connection = True
@@ -487,7 +495,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			message = short
 
 		if not isinstance(message, str):
-			raise ICAPError(500)
+			raise ICAPError(500, 'Message must be string.')
 
 		self.log_error("Code: %d, Message: %s", code, message)
 
@@ -517,7 +525,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			message = short
 
 		if not isinstance(message, str):
-			raise ICAPError(500)
+			raise ICAPError(500, 'Message must be string.')
 
 		# No encapsulation
 		self.enc_req = None
