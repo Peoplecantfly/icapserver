@@ -318,7 +318,6 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			icap_header_str + enc_header_str
 		)
 
-
 	def parse_request(self):
 		""" Parse a request (internal).
 			The request should be stored in self.raw_requestline; the results

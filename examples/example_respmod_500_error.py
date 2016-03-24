@@ -10,18 +10,19 @@ class ThreadingSimpleServer(SocketServer.ThreadingMixIn, ICAPServer):
 
 class ICAPHandler(BaseICAPRequestHandler):
 
-	def test_OPTIONS(self):
+	def example_OPTIONS(self):
 		self.set_icap_response(200)
 		self.set_icap_header('Methods', 'RESPMOD, REQMOD')
 		self.set_icap_header('Service', 'ICAP Server 1.0')
 		self.set_icap_header('Options-TTL', '3600')
+		self.set_icap_header('Preview', '0')
 		self.send_headers(False)
 
-	def test_REQMOD(self):
+	def example_REQMOD(self):
 		self.no_adaptation_required()
 
-	def test_RESPMOD(self):
-		self.send_error(500)
+	def example_RESPMOD(self):
+		self.send_error(500, 'Something goes wrong :(')
 
 port = 13440
 

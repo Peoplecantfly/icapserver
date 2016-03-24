@@ -10,24 +10,24 @@ class ThreadingSimpleServer(SocketServer.ThreadingMixIn, ICAPServer):
 
 class ICAPHandler(BaseICAPRequestHandler):
 
-	def test_OPTIONS(self):
+	def example_OPTIONS(self):
 		self.set_icap_response(200)
 		self.set_icap_header('Methods', 'RESPMOD, REQMOD')
 		self.set_icap_header('Service', 'ICAP Server 1.0')
 		self.set_icap_header('Options-TTL', '3600')
+		self.set_icap_header('Preview', '0')
 		self.send_headers(False)
 
-	def test_REQMOD(self):
+	def example_REQMOD(self):
 		self.no_adaptation_required()
 
-	def test_RESPMOD(self):
+	def example_RESPMOD(self):
 		if self.has_body:
 			while True:
 				if self.read_chunk() == '':
 					break
 		self.set_icap_response(200)
-		self.set_enc_status('HTTP/1.1 307 Temporary Redirect')
-		self.set_enc_header('Location', 'http://example.com/')
+		self.set_enc_status('HTTP/1.1 451 Unavailable For Legal Reasons')
 		self.send_headers(False)
 
 port = 13440
