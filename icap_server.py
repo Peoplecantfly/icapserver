@@ -217,7 +217,6 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		self.enc_request = request
 
-	# TODO: write add_* and set_* methods
 	def set_enc_header(self, header, value):
 		""" Set an encapsulated header to the given value
 			Multiple sets will cause the header to be sent multiple times.
@@ -443,7 +442,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		self.icap_headers = {}
 		self.enc_headers = {}
-		self.enc_status = None # Seriously, need better names
+		self.enc_status = None
 		self.enc_request = None
 
 		self.icap_response_code = None
