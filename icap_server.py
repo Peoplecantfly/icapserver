@@ -1,26 +1,28 @@
 #-*-: coding: utf-8
-
+"""
 # ===================================================================================================================== #
 #  Implements an ICAP server framework                                                                                  #
 #  For the ICAP specification, see RFC 3507                                                                             #
 # ===================================================================================================================== #
-
-__version__ = "1.0"
-
-__all__ = ['ICAPServer', 'BaseICAPRequestHandler', 'ICAPError']
+"""
 
 import sys
 import time
 import random
 import socket
+import string
 import urlparse
 import SocketServer
+
+__version__ = "1.0"
+
+__all__ = ['ICAPServer', 'BaseICAPRequestHandler', 'ICAPError']
 
 class ICAPError(Exception):
 	""" Signals a protocol error.
 	"""
 	def __init__(self, code=500, message=None):
-		if message == None:
+		if message is None:
 			short, long = BaseICAPRequestHandler._responses[code]
 			message = short
 
@@ -58,8 +60,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		200: ('OK', 'Request fulfilled, document follows'),
 		201: ('Created', 'Document created, URL follows'),
-		202: ('Accepted',
-			  'Request accepted, processing continues off-line'),
+		202: ('Accepted', 'Request accepted, processing continues off-line'),
 		203: ('Non-Authoritative Information', 'Request fulfilled from cache'),
 		204: ('No Content', 'Request fulfilled, nothing follows'),
 		205: ('Reset Content', 'Clear input form for further input.'),
@@ -269,10 +270,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			enc_body = 'null-body='
 
 		if not self.icap_headers.has_key('ISTag'):
-			self.set_icap_header('ISTag', ''.join(map(
-				lambda x: random.choice('ABCDIFGHIJabcdefghij1234567890'),
-				xrange(32)
-			)))
+			self.set_icap_header('ISTag', ''.join([random.choice(string.ascii_uppercase \
+																+ string.digits) for x in xrange(32)]))
 
 		if not self.icap_headers.has_key('Date'):
 			self.set_icap_header('Date', self.date_time_string())
@@ -386,7 +385,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 				self.encapsulated[k] = int(v)
 
 		self.preview = self.headers.get('preview', [None])[0]
-		self.allow = map(lambda x: x.strip(), self.headers.get('allow', [''])[0].split(','))
+		self.allow = [x.strip() for x in self.headers.get('allow', [''])[0].split(',')]
 
 		if self.command == 'REQMOD':
 			if self.encapsulated.has_key('req-hdr'):
@@ -469,7 +468,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			self.log_request(self.icap_response_code)
 		except socket.timeout as e:
 			self.log_error("Request timed out: %r", e)
-			self.close_connection = 1
+			self.close_connection = True
 		except ICAPError as e:
 			self.send_error(e.code, e.message)
 		except:
