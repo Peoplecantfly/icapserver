@@ -248,7 +248,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		self.icap_headers[header] = self.icap_headers.get(header, []) + [value]
 
-	def send_headers(self, has_body = False):
+	def send_headers(self, has_body=False):
 		""" Send ICAP and encapsulated headers
 			Assembles the Encapsulated header, so it's need the information
 			of wether an encapsulated message body is present.
@@ -378,7 +378,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 				raise ICAPError(500, "Encapsulated is empty.")
 			for enc in _encapsulated:
 				try:
-					k,v = enc.strip().split('=')
+					k, v = enc.strip().split('=')
 				except:
 					raise ICAPError(500, "Encapsulated is malformed.")
 				self.encapsulated[k] = int(v)
