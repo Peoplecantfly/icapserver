@@ -41,12 +41,11 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		endpoint. Every endpoint MUST have an _OPTION method,
 		and _REQMOD or a _RESPMOD method or both.
 	"""
-
-	# The version of the ICAP protocol.
-	protocol_version = "ICAP/1.0"
-
 	# The version of the Python.
 	_sys_version = "Python/" + sys.version.split()[0]
+
+	# The version of the ICAP protocol.
+	_protocol_version = "ICAP/1.0"
 
 	# The server software version.
 	_server_version = "ICAP/" + __version__
