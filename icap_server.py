@@ -11,12 +11,17 @@ import time
 import random
 import socket
 import string
+import logging
 import urlparse
 import SocketServer
 
 __version__ = "1.0"
 
 __all__ = ['ICAPServer', 'BaseICAPRequestHandler', 'ICAPError']
+
+LOG = logging.getLogger(__name__)
+level = logging.INFO
+logging.basicConfig(level=level, format="[%(asctime)s][%(name)s][%(levelname)s] %(message)s", filename="")
 
 class ICAPError(Exception):
 	""" Signals a protocol error.
@@ -28,6 +33,8 @@ class ICAPError(Exception):
 
 		super(ICAPError, self).__init__(message)
 		self.code = code
+		msg = 'Code: %d - Message: %s' % (code, message)
+		LOG.error(msg)
 
 class ICAPServer(SocketServer.TCPServer):
 	""" ICAP Server
@@ -111,14 +118,16 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 	def _read_status(self):
 		""" Read a HTTP or ICAP status line from input stream.
 		"""
-
-		return self.rfile.readline().strip().split(' ', 2)
+		status = self.rfile.readline().strip().split(' ', 2)
+		LOG.debug(status)
+		return status
 
 	def _read_request(self):
 		""" Read a HTTP or ICAP request line from input stream.
 		"""
-
-		return self.rfile.readline().strip().split(' ', 2)
+		request = self.rfile.readline().strip().split(' ', 2)
+		LOG.debug(request)
+		return request
 
 	def _read_headers(self):
 		""" Read a sequence of header lines.
@@ -131,6 +140,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 				break
 			k, v = line.split(':', 1)
 			headers[k.lower()] = headers.get(k.lower(), []) + [v.strip()]
+		LOG.debug(headers)
 		return headers
 
 	def read_chunk(self):
@@ -206,6 +216,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		"""
 
 		self.enc_status = status
+		msg = 'Encapsulated status: %s' % status
+		LOG.debug(msg)
 
 	def set_enc_request(self, request):
 		""" Set encapsulated request line in response
@@ -216,13 +228,16 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		"""
 
 		self.enc_request = request
+		msg = 'Encapsulated request: %s' % request
+		LOG.debug(msg)
 
 	def set_enc_header(self, header, value):
 		""" Set an encapsulated header to the given value
 			Multiple sets will cause the header to be sent multiple times.
 		"""
-
 		self.enc_headers[header] = self.enc_headers.get(header, []) + [value]
+		msg = 'Encapsulated header: %s : %s' % (header, value)
+		LOG.debug(msg)
 
 	def set_icap_response(self, code, message=None):
 		""" Sets the ICAP response's status line and response code.
@@ -240,6 +255,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		self.icap_response = 'ICAP/1.0 ' + str(code) + ' ' + message
 		self.icap_response_code = code
+		msg = 'ICAP response: %s' % self.icap_response
+		LOG.debug(msg)
 
 	def set_icap_header(self, header, value):
 		""" Set an ICAP header to the given value
@@ -247,6 +264,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		"""
 
 		self.icap_headers[header] = self.icap_headers.get(header, []) + [value]
+		msg = 'ICAP header: %s : %s' % (header, value)
+		LOG.debug(msg)
 
 	def send_headers(self, has_body=False):
 		""" Send ICAP and encapsulated headers
@@ -310,10 +329,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		icap_header_str += '\r\n'
 
-		self.wfile.write(
-			self.icap_response + '\r\n' +
-			icap_header_str + enc_header_str
-		)
+		self.wfile.write(self.icap_response + '\r\n' + icap_header_str + enc_header_str)
 
 	def parse_request(self):
 		""" Parse a request (internal).
@@ -464,9 +480,11 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 			method()
 			self.wfile.flush()
-			self.log_request(self.icap_response_code)
+			msg = '[%s] "%s" %d' % (self.client_address[0], self.requestline, self.icap_response_code)
+			LOG.debug(msg)
 		except socket.timeout as e:
-			self.log_error("Request timed out: %r", e)
+			msg = 'Request timed out: %r', e
+			LOG.error(msg)
 			self.close_connection = True
 		except ICAPError as e:
 			self.send_error(e.code, e.message)
@@ -493,7 +511,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if not isinstance(message, str):
 			raise ICAPError(500, 'Message must be string.')
 
-		self.log_error("Code: %d, Message: %s", code, message)
+		msg = 'Code: %d, Message: %s', code, message
+		LOG.error(msg)
 
 		# No encapsulation
 		self.enc_req = None
@@ -535,40 +554,6 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			self.write_chunk(body)
 		self.write_chunk('')
 
-	def log_request(self, code='-', size='-'):
-		""" Log an accepted request.
-			This is called by send_response().
-		"""
-
-		self.log_message('"%s" %s %s',
-						 self.requestline, str(code), str(size))
-
-	def log_error(self, format, *args):
-		"""Log an error.
-			This is called when a request cannot be fulfilled.
-			By default it passes the message on to log_message().
-			Arguments are the same as for log_message().
-		"""
-
-		self.log_message(format, *args)
-
-	def log_message(self, format, *args):
-		""" Log an arbitrary message.
-			This is used by all other logging functions.
-			Override it if you have specific logging wishes.
-			The first argument, FORMAT, is a format string for the
-			message to be logged.  If the format string contains
-			any % escapes requiring parameters, they should be
-			specified as subsequent arguments (it's just like printf!).
-			The client ip address and current date/time are prefixed to every
-			message.
-		"""
-
-		sys.stderr.write("%s - - [%s] %s\n" %
-						 (self.client_address[0],
-						  self.log_date_time_string(),
-						  format%args))
-
 	def version_string(self):
 		""" Return the server software version string.
 		"""
@@ -582,20 +567,9 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if timestamp is None:
 			timestamp = time.time()
 		year, month, day, hh, mm, ss, wd, y, z = time.gmtime(timestamp)
-		s = "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (
-				self._weekdayname[wd],
-				day, self._monthname[month], year,
-				hh, mm, ss)
-		return s
-
-	def log_date_time_string(self):
-		""" Return the current time formatted for logging.
-		"""
-
-		now = time.time()
-		year, month, day, hh, mm, ss, x, y, z = time.localtime(now)
-		s = "%02d/%3s/%04d %02d:%02d:%02d" % (
-				day, self._monthname[month], year, hh, mm, ss)
+		s = "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (self._weekdayname[wd], 
+													day, self._monthname[month], year, 
+													hh, mm, ss)
 		return s
 
 	def address_string(self):
@@ -634,7 +608,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 			if not self.has_body:
 				self.send_headers(False)
-				self.log_request(200)
+				msg = '[%s] "%s" %d' % (self.client_address[0], self.requestline, 200)
+				LOG.debug(msg)
 				return
 
 			self.send_headers(True)
