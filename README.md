@@ -7,7 +7,7 @@ to write your own simple icap servers.
 Installation
 ------------
 
-Just copy icap_server.py file onto your PYTHON_PATH, 
+Just copy icapserver.py file onto your PYTHON_PATH, 
 or the directory of your python module.
 
 TODO: add unittests  
@@ -35,14 +35,14 @@ For more infromation see [RFC 3507](https://tools.ietf.org/html/rfc3507)
 Usage
 -----
 
-Just import stuff from the icap_server package, extend the protocol handler 
+Just import stuff from the icapserver package, extend the protocol handler 
 class and start the server:
 
 ```python
 # -*- coding: utf8 -*-
 
 import SocketServer
-from icap_server import *
+from icapserver import *
 
 class SimpleServer(SocketServer.ThreadingMixIn, ICAPServer):
 	pass

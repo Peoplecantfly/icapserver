@@ -3,7 +3,7 @@
 import random
 import SocketServer
 
-from icap_server import *
+from icapserver import *
 
 class ThreadingSimpleServer(SocketServer.ThreadingMixIn, ICAPServer):
 	pass

@@ -15,7 +15,7 @@ import logging
 import urlparse
 import SocketServer
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 __all__ = ['ICAPServer', 'BaseICAPRequestHandler', 'ICAPError']
 
