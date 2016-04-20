@@ -1,8 +1,7 @@
 icapserver
 ==========
 
-A barebone icap server written in python and framework
-to write your own simple icap servers.
+A barebone icap server written in python.
 
 Installation
 ------------
