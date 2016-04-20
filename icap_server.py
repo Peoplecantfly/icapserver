@@ -33,7 +33,7 @@ class ICAPError(Exception):
 
 		super(ICAPError, self).__init__(message)
 		self.code = code
-		msg = 'Code: %d - Message: %s' % (code, message)
+		msg = 'Code: %d Message: %s' % (code, message)
 		LOG.error(msg)
 
 class ICAPServer(SocketServer.TCPServer):
@@ -481,7 +481,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			method()
 			self.wfile.flush()
 			msg = '[%s] "%s" %d' % (self.client_address[0], self.requestline, self.icap_response_code)
-			LOG.debug(msg)
+			LOG.info(msg)
 		except socket.timeout as e:
 			msg = 'Request timed out: %r', e
 			LOG.error(msg)
@@ -511,7 +511,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if not isinstance(message, str):
 			raise ICAPError(500, 'Message must be string.')
 
-		msg = 'Code: %d, Message: %s', code, message
+		msg = '[Sending Error] Code: %d, Message: %s' % (code, message)
 		LOG.error(msg)
 
 		# No encapsulation
@@ -609,7 +609,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			if not self.has_body:
 				self.send_headers(False)
 				msg = '[%s] "%s" %d' % (self.client_address[0], self.requestline, 200)
-				LOG.debug(msg)
+				LOG.info(msg)
 				return
 
 			self.send_headers(True)
