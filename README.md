@@ -6,8 +6,9 @@ A barebone icap server written in python.
 Installation
 ------------
 
-Just copy icapserver.py file onto your PYTHON_PATH, 
-or the directory of your python module.
+Use `python seutp.py install` or simply copy icapserver.py file 
+onto your PYTHON_PATH or the directory of your python module.
+Also  you can install this module with pip: `pip install icapserver`.
 
 TODO: add unittests  
 TODO: add tutorial  
