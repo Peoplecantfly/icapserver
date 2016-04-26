@@ -212,7 +212,9 @@ application on a per-resource basis. Clients SHOULD be able to provide Previews 
 
 Examples
 ========
-For more examples you can check [examples](https://github.com/Peoplecantfly/icapserver/tree/master/examples) folder.
+For more examples you can check [examples](https://github.com/Peoplecantfly/icapserver/tree/master/examples) folder.  
+*NB! In this realization of ICAP server you should use one "service name" for all methods, 
+but basicly it depends on ICAP client realization.*
 ### Example 1: 204 No content
 204 No content is for No content adaptation required.  
 So this example sends 204 No content for both REQMOD and RESPMOD.
