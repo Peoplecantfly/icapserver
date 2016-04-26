@@ -36,14 +36,183 @@ indicates a message that encapsulates a group of request headers, a group of res
 and then a response body.  Each of these is included at the byte-offsets listed.  The byte-offsets are in
 decimal notation for consistency with HTTP's Content-Length header. The special entity `null-body` 
 indicates there is no encapsulated body in the ICAP message.
+
+Also there are some specific ICAP headers but less important such as:
+* ISTag - ICAP server tag.
+* Options-TTL - how often to call ICAP server for options.
+* Methods - allowed ICAP server methods (without OPTIONS)
+* etc.
+
+Also, anyone can add their own headers, that shoud starts with `X-ICAP-`.
+For example: `X-ICAP-USERNAME`.
+
+Methods
+-------
+All usefull info about all method you can read in RFC 3507, so there is just an example how it looks like:
 ### The OPTIONS method
+```
+OPTIONS icap://icap.server.net/sample-service ICAP/1.0
+Host: icap.server.net
+User-Agent: ICAP-Client-Library/2.3
+-------------------------------------------------------------------------------------------
+ICAP/1.0 200 OK
+Date: Mon, 10 Jan 2000  09:55:21 GMT
+Methods: RESPMOD
+Service: FOO Tech Server 1.0
+ISTag: "W3E4R7U9-L2E4-2"
+Encapsulated: null-body=0
+Max-Connections: 1000
+Options-TTL: 7200
+Allow: 204
+Preview: 2048
+Transfer-Complete: asp, bat, exe, com
+Transfer-Ignore: html
+Transfer-Preview: *
+```
 ### The REQMOD method
+```
+REQMOD icap://icap-server.net/server?arg=87 ICAP/1.0
+Host: icap-server.net
+Encapsulated: req-hdr=0, null-body=170
+
+GET / HTTP/1.1
+Host: www.origin-server.com
+Accept: text/html, text/plain
+Accept-Encoding: compress
+Cookie: ff39fk3jur@4ii0e02i
+If-None-Match: "xyzzy", "r2d2xxxx"
+-------------------------------------------------------------------------------------------
+ICAP/1.0 200 OK
+Date: Mon, 10 Jan 2000  09:55:21 GMT
+Server: ICAP-Server-Software/1.0
+Connection: close
+ISTag: "W3E4R7U9-L2E4-2"
+Encapsulated: req-hdr=0, null-body=231
+
+GET /modified-path HTTP/1.1
+Host: www.origin-server.com
+Via: 1.0 icap-server.net (ICAP Example ReqMod Service 1.1)
+Accept: text/html, text/plain, image/gif
+Accept-Encoding: gzip, compress
+If-None-Match: "xyzzy", "r2d2xxxx"   
+```
+```
+REQMOD icap://icap-server.net/server?arg=87 ICAP/1.0
+Host: icap-server.net
+Encapsulated: req-hdr=0, req-body=147
+
+POST /origin-resource/form.pl HTTP/1.1
+Host: www.origin-server.com
+Accept: text/html, text/plain
+Accept-Encoding: compress
+Pragma: no-cache
+
+1e
+I am posting this information.
+0
+-------------------------------------------------------------------------------------------
+ICAP/1.0 200 OK
+Date: Mon, 10 Jan 2000  09:55:21 GMT
+Server: ICAP-Server-Software/1.0
+Connection: close
+ISTag: "W3E4R7U9-L2E4-2"
+Encapsulated: req-hdr=0, req-body=244
+
+POST /origin-resource/form.pl HTTP/1.1
+Host: www.origin-server.com
+Via: 1.0 icap-server.net (ICAP Example ReqMod Service 1.1)
+Accept: text/html, text/plain, image/gif
+Accept-Encoding: gzip, compress
+Pragma: no-cache
+Content-Length: 45
+
+2d
+I am posting this information.  ICAP powered!
+0
+```
+```
+REQMOD icap://icap-server.net/content-filter ICAP/1.0
+Host: icap-server.net
+Encapsulated: req-hdr=0, null-body=119
+
+GET /naughty-content HTTP/1.1
+Host: www.naughty-site.com
+Accept: text/html, text/plain
+Accept-Encoding: compress
+-------------------------------------------------------------------------------------------
+ICAP/1.0 200 OK
+Date: Mon, 10 Jan 2000  09:55:21 GMT
+Server: ICAP-Server-Software/1.0
+Connection: close
+ISTag: "W3E4R7U9-L2E4-2"
+Encapsulated: res-hdr=0, res-body=213
+
+HTTP/1.1 403 Forbidden
+Date: Wed, 08 Nov 2000 16:02:10 GMT
+Server: Apache/1.3.12 (Unix)
+Last-Modified: Thu, 02 Nov 2000 13:51:37 GMT
+ETag: "63600-1989-3a017169"
+Content-Length: 58
+Content-Type: text/html
+
+3a
+Sorry, you are not allowed to access that naughty content.
+0
+```
 ### The RESPMOD method
-### 204 No Content
+```
+RESPMOD icap://icap.example.org/satisf ICAP/1.0
+Host: icap.example.org
+Encapsulated: req-hdr=0, res-hdr=137, res-body=296
+
+GET /origin-resource HTTP/1.1
+Host: www.origin-server.com
+Accept: text/html, text/plain, image/gif
+Accept-Encoding: gzip, compress
+
+HTTP/1.1 200 OK
+Date: Mon, 10 Jan 2000 09:52:22 GMT
+Server: Apache/1.3.6 (Unix)
+ETag: "63840-1ab7-378d415b"
+Content-Type: text/html
+Content-Length: 51
+33
+This is data that was returned by an origin server.
+0
+-------------------------------------------------------------------------------------------
+ICAP/1.0 200 OK
+Date: Mon, 10 Jan 2000  09:55:21 GMT
+Server: ICAP-Server-Software/1.0
+Connection: close
+ISTag: "W3E4R7U9-L2E4-2"
+Encapsulated: res-hdr=0, res-body=222
+
+HTTP/1.1 200 OK
+Date: Mon, 10 Jan 2000  09:55:21 GMT
+Via: 1.0 icap.example.org (ICAP Example RespMod Service 1.1)
+Server: Apache/1.3.6 (Unix)
+ETag: "63840-1ab7-378d415b"
+Content-Type: text/html
+Content-Length: 92
+
+5c
+This is data that was returned by an origin server, but with
+value added by an ICAP server.
+0
+```
 ### Preview
+ICAP REQMOD or RESPMOD requests sent by the ICAP client to the ICAP server may include a "preview". 
+This feature allows an ICAP server to see the beginning of a transaction, then decide if it wants to 
+opt-out of the transaction early instead of receiving the remainder of the request message. 
+Previewing can yield significant performance improvements in a variety of situations.
+
+ICAP servers SHOULD use the OPTIONS method tospecify how many bytes of preview are needed for a particular ICAP
+application on a per-resource basis. Clients SHOULD be able to provide Previews of at least 4096 bytes.
+
+
 Examples
 ========
-### Example 0: Using the framework
+### Example 0: 204 No content
 ### Example 1: 
 ### Example 2: 
 ### Example 3: 
