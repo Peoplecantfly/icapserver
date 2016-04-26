@@ -10,9 +10,6 @@ Use `python seutp.py install` or simply copy icapserver.py file
 onto your PYTHON_PATH or the directory of your python module.
 Also  you can install this module with pip: `pip install icapserver`.
 
-TODO: add unittests  
-TODO: add tutorial  
-
 What is ICAP?
 -------------
 
