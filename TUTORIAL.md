@@ -254,6 +254,9 @@ requests:
 * set_icap_header(header, value): Set an ICAP header.
 * send_chunk(data): send a chunk to the client.
 
+*NB! If you want to change POST data or add/delete something from server response body - make sure that you change 
+encapsulated body lenght to appropriate value!*
+
 ### Example 1: 204 No content
 204 No content is for No content adaptation required.  
 So this example sends 204 No content for both REQMOD and RESPMOD.
