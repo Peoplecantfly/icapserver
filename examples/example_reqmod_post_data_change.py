@@ -44,7 +44,7 @@ class ExampleICAPHandler(BaseICAPRequestHandler):
 					self.set_enc_header(h, v)
 
 			self.send_headers(True)
-			self.write_chunk(buff)
+			self.send_chunk(buff)
 
 	def example_RESPMOD(self):
 		self.no_adaptation_required()

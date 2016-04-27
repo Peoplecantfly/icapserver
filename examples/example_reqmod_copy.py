@@ -36,23 +36,23 @@ class ExampleICAPHandler(BaseICAPRequestHandler):
 			if self.ieof:
 				self.send_headers(True)
 				if len(prevbuf) > 0:
-					self.write_chunk(prevbuf)
-				self.write_chunk('')
+					self.send_chunk(prevbuf)
+				self.send_chunk('')
 				return
 			self.cont()
 			self.send_headers(True)
 			if len(prevbuf) > 0:
-				self.write_chunk(prevbuf)
+				self.send_chunk(prevbuf)
 			while True:
 				chunk = self.read_chunk()
-				self.write_chunk(chunk)
+				self.send_chunk(chunk)
 				if chunk == '':
 					break
 		else:
 			self.send_headers(True)
 			while True:
 				chunk = self.read_chunk()
-				self.write_chunk(chunk)
+				self.send_chunk(chunk)
 				if chunk == '':
 					break
 

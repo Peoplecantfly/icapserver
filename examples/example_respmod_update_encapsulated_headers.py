@@ -31,7 +31,7 @@ class ExampleICAPHandler(BaseICAPRequestHandler):
 		self.send_headers(True)
 		while True:
 			chunk = self.read_chunk()
-			self.write_chunk(chunk)
+			self.send_chunk(chunk)
 			if chunk == '':
 				break
 

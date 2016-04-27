@@ -24,7 +24,8 @@ level = logging.INFO
 logging.basicConfig(level=level, format="[%(asctime)s][%(name)s][%(levelname)s] %(message)s", filename="")
 
 class ICAPError(Exception):
-	""" Signals a protocol error.
+	""" 
+	Signals a protocol error.
 	"""
 	def __init__(self, code=500, message=None):
 		if message is None:
@@ -37,16 +38,18 @@ class ICAPError(Exception):
 		LOG.error(msg)
 
 class ICAPServer(SocketServer.TCPServer):
-	""" ICAP Server
-		This is a simple TCPServer, that allows address reuse.
+	""" 
+	ICAP Server
+	This is a simple TCPServer, that allows address reuse.
 	"""
 	allow_reuse_address = 1
 
 class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
-	""" ICAP request handler base class.
-		You have to subclass it and provide methods for each service
-		endpoint. Every endpoint MUST have an _OPTION method,
-		and _REQMOD or a _RESPMOD method or both.
+	""" 
+	ICAP request handler base class.
+	You have to subclass it and provide methods for each service
+	endpoint. Every endpoint MUST have an _OPTION method,
+	and _REQMOD or a _RESPMOD method or both.
 	"""
 	# The version of the Python.
 	_sys_version = "Python/" + sys.version.split()[0]
@@ -116,7 +119,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 				'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 	def _read_status(self):
-		""" Read a HTTP or ICAP status line from input stream.
+		""" 
+		Read a HTTP or ICAP status line from input stream.
 		"""
 		status = self.rfile.readline().strip().split(' ', 2)
 		LOG.debug(status)
@@ -130,7 +134,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		return request
 
 	def _read_headers(self):
-		""" Read a sequence of header lines.
+		""" 
+		Read a sequence of header lines.
 		"""
 
 		headers = {}
@@ -144,11 +149,12 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		return headers
 
 	def read_chunk(self):
-		""" Read a HTTP chunk
-			Also handles the ieof chunk extension defined by the ICAP
-			protocol by setting the ieof variable to True. It returns an
-			empty line if the last chunk is read. Reading after the last
-			chunks will return empty strings.
+		""" 
+		Read a HTTP chunk
+		Also handles the ieof chunk extension defined by the ICAP
+		protocol by setting the ieof variable to True. It returns an
+		empty line if the last chunk is read. Reading after the last
+		chunks will return empty strings.
 		"""
 
 		# Don't try to read when there's no body
@@ -184,20 +190,22 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		return value
 
-	def write_chunk(self, data):
-		""" Write a chunk of data
-			When finished writing, an empty chunk with data='' must
-			be written.
+	def send_chunk(self, data):
+		""" 
+		Send a chunk of data
+		When finished writing, an empty chunk with data='' must
+		be written.
 		"""
 
 		l = hex(len(data))[2:]
 		self.wfile.write(l + '\r\n' + data + '\r\n')
 
 	def cont(self):
-		""" Send a 100 continue reply
-			Useful when the client sends a preview request, and we have
-			to read the entire message body. After this command, read_chunk
-			can safely be called again.
+		""" 
+		Send a 100 continue reply
+		Useful when the client sends a preview request, and we have
+		to read the entire message body. After this command, read_chunk
+		can safely be called again.
 		"""
 
 		if self.ieof:
@@ -208,11 +216,12 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		self.eob = False
 
 	def set_enc_status(self, status):
-		""" Set encapsulated status in response
-			ICAP responses can only contain one encapsulated header section.
-			Such section is either an encapsulated HTTP request, or a
-			response. This method can be called to set encapsulated HTTP
-			response's status line.
+		""" 
+		Set encapsulated status in response
+		ICAP responses can only contain one encapsulated header section.
+		Such section is either an encapsulated HTTP request, or a
+		response. This method can be called to set encapsulated HTTP
+		response's status line.
 		"""
 
 		self.enc_status = status
@@ -220,11 +229,12 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		LOG.debug(msg)
 
 	def set_enc_request(self, request):
-		""" Set encapsulated request line in response
-			ICAP responses can only contain one encapsulated header section.
-			Such section is either an encapsulated HTTP request, or a
-			response. This method can be called to set encapsulated HTTP
-			request's request line.
+		""" 
+		Set encapsulated request line in response
+		ICAP responses can only contain one encapsulated header section.
+		Such section is either an encapsulated HTTP request, or a
+		response. This method can be called to set encapsulated HTTP
+		request's request line.
 		"""
 
 		self.enc_request = request
@@ -232,15 +242,17 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		LOG.debug(msg)
 
 	def set_enc_header(self, header, value):
-		""" Set an encapsulated header to the given value
-			Multiple sets will cause the header to be sent multiple times.
+		""" 
+		Set an encapsulated header to the given value
+		Multiple sets will cause the header to be sent multiple times.
 		"""
 		self.enc_headers[header] = self.enc_headers.get(header, []) + [value]
 		msg = 'Encapsulated header: %s : %s' % (header, value)
 		LOG.debug(msg)
 
 	def set_icap_response(self, code, message=None):
-		""" Sets the ICAP response's status line and response code.
+		""" 
+		Sets the ICAP response's status line and response code.
 		"""
 
 		try:
@@ -259,8 +271,9 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		LOG.debug(msg)
 
 	def set_icap_header(self, header, value):
-		""" Set an ICAP header to the given value
-			Multiple sets will cause the header to be sent multiple times.
+		""" 
+		Set an ICAP header to the given value
+		Multiple sets will cause the header to be sent multiple times.
 		"""
 
 		self.icap_headers[header] = self.icap_headers.get(header, []) + [value]
@@ -268,9 +281,10 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		LOG.debug(msg)
 
 	def send_headers(self, has_body=False):
-		""" Send ICAP and encapsulated headers
-			Assembles the Encapsulated header, so it's need the information
-			of wether an encapsulated message body is present.
+		""" 
+		Send ICAP and encapsulated headers
+		Assembles the Encapsulated header, so it's need the information
+		of wether an encapsulated message body is present.
 		"""
 
 		enc_header = None
@@ -332,11 +346,12 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		self.wfile.write(self.icap_response + '\r\n' + icap_header_str + enc_header_str)
 
 	def parse_request(self):
-		""" Parse a request (internal).
-			The request should be stored in self.raw_requestline; the results
-			are in self.command, self.request_uri, self.request_version and self.headers.
-			Return True for success, False for failure; on failure, an
-			error is sent back.
+		""" 
+		Parse a request (internal).
+		The request should be stored in self.raw_requestline; the results
+		are in self.command, self.request_uri, self.request_version and self.headers.
+		Return True for success, False for failure; on failure, an
+		error is sent back.
 		"""
 
 		self.command = None
@@ -423,10 +438,11 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		self.servicename = urlparse.urlparse(self.request_uri)[2].strip('/')
 
 	def handle(self):
-		""" Handles a connection
-			Since we support Connection: keep-alive, moreover this is the
-			default behavior, one connection may mean multiple ICAP
-			requests.
+		""" 
+		Handles a connection
+		Since we support Connection: keep-alive, moreover this is the
+		default behavior, one connection may mean multiple ICAP
+		requests.
 		"""
 
 		self.close_connection = False
@@ -434,10 +450,11 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			self.handle_one_request()
 
 	def handle_one_request(self):
-		""" Handle a single HTTP request.
-			You normally don't need to override this method; see the class
-			__doc__ string for information on how to handle specific HTTP
-			commands such as GET and POST.
+		""" 
+		Handle a single HTTP request.
+		You normally don't need to override this method; see the class
+		__doc__ string for information on how to handle specific HTTP
+		commands such as GET and POST.
 		"""
 
 		# Initialize handler state
@@ -492,13 +509,14 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			self.send_error(500)
 
 	def send_error(self, code, message=None):
-		""" Send and log an error reply.
-			Arguments are the error code, and a detailed message.
-			The detailed message defaults to the short entry matching the
-			response code.
-			This sends an error response (so it must be called before any
-			output has been generated), logs the error, and finally sends
-			a piece of HTML explaining the error to the user.
+		""" 
+		Send and log an error reply.
+		Arguments are the error code, and a detailed message.
+		The detailed message defaults to the short entry matching the
+		response code.
+		This sends an error response (so it must be called before any
+		output has been generated), logs the error, and finally sends
+		a piece of HTML explaining the error to the user.
 		"""
 
 		try:
@@ -523,13 +541,14 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		self.send_headers()
 
 	def send_enc_error(self, code, message=None, body='', contenttype='text/html'):
-		""" Send an encapsulated error reply.
-			Arguments are the error code, and a detailed message.
-			The detailed message defaults to the short entry matching the
-			response code.
-			This sends an encapsulated error response (so it must be called
-			before any output has been generated), logs the error, and
-			finally sends a piece of HTML explaining the error to the user.
+		""" 
+		Send an encapsulated error reply.
+		Arguments are the error code, and a detailed message.
+		The detailed message defaults to the short entry matching the
+		response code.
+		This sends an encapsulated error response (so it must be called
+		before any output has been generated), logs the error, and
+		finally sends a piece of HTML explaining the error to the user.
 		"""
 
 		try:
@@ -551,17 +570,19 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		self.set_enc_header('Content-Length', str(len(body)))
 		self.send_headers(has_body=True)
 		if len(body) > 0:
-			self.write_chunk(body)
-		self.write_chunk('')
+			self.send_chunk(body)
+		self.send_chunk('')
 
 	def version_string(self):
-		""" Return the server software version string.
+		""" 
+		Return the server software version string.
 		"""
 
 		return self._server_version + ' ' + self._sys_version
 
 	def date_time_string(self, timestamp=None):
-		""" Return the current date and time formatted for a message header.
+		""" 
+		Return the current date and time formatted for a message header.
 		"""
 
 		if timestamp is None:
@@ -573,19 +594,21 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		return s
 
 	def address_string(self):
-		""" Return the client address formatted for logging.
-			This version looks up the full hostname using gethostbyaddr(),
-			and tries to find a name that contains at least one dot.
+		""" 
+		Return the client address formatted for logging.
+		This version looks up the full hostname using gethostbyaddr(),
+		and tries to find a name that contains at least one dot.
 		"""
 
 		host, port = self.client_address[:2]
 		return socket.getfqdn(host)
 
 	def no_adaptation_required(self):
-		""" Tells the client to leave the message unaltered
-			If the client allows 204, or this is a preview request than
-			a 204 preview response is sent. Otherwise a copy of the message
-			is returned to the client.
+		""" 
+		Tells the client to leave the message unaltered
+		If the client allows 204, or this is a preview request than
+		a 204 preview response is sent. Otherwise a copy of the message
+		is returned to the client.
 		"""
 
 		if '204' in self.allow or self.preview != None:
@@ -615,7 +638,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			self.send_headers(True)
 			while True:
 				chunk = self.read_chunk()
-				self.write_chunk(chunk)
+				self.send_chunk(chunk)
 				if chunk == '':
 					break
 
