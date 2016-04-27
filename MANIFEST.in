@@ -1,0 +1,2 @@
+include  *.py *.md LICENSE .gitignore
+recursive-include examples *.py

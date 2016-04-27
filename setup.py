@@ -4,12 +4,12 @@ from distutils.core import setup
 
 setup(
 	name='icapserver',
-	version='1.1',
+	version='1.1a',
 	description='ICAP Server framework',
 	author='Nikolay Ivanov',
 	author_email='peoplecantfly@gmail.com',
 	url='https://github.com/Peoplecantfly/icapserver',
-	download_url='https://github.com/Peoplecantfly/icapserver/releases/tag/v1.1',
+	download_url='https://github.com/Peoplecantfly/icapserver/releases/tag/v1.1a',
 	license='MIT License',
 	platforms='OS Independent',
 	py_modules=['icapserver'],
