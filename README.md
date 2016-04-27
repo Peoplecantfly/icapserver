@@ -4,7 +4,7 @@ icapserver
 A barebone icap server written in python.
 But mostly this is a framework to write your own ICAP servers.
 
-I work as QA Engineer and wrote this just for my tests porpuses.
+I work as QA Engineer and wrote this just for my test purpuses.
 
 Installation
 ------------
