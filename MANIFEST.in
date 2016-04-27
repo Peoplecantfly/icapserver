@@ -1,2 +1,2 @@
-include  *.py *.md LICENSE .gitignore
+include  *.py *.md LICENSE README .gitignore
 recursive-include examples *.py
