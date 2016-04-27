@@ -50,6 +50,7 @@ Methods
 -------
 All usefull info about all method you can read in RFC 3507, so there is just an example how it looks like:
 ### The OPTIONS method
+OPTIONS must be handled in every case.
 ```
 OPTIONS icap://icap.server.net/sample-service ICAP/1.0
 Host: icap.server.net
@@ -70,6 +71,9 @@ Transfer-Ignore: html
 Transfer-Preview: *
 ```
 ### The REQMOD method
+REQMOD is called, when a HTTP request must be modified - like checking access to an URL, 
+stripping or adding query string parameters or POST data, modifying headers or otherwise 
+mangling the request.
 ```
 REQMOD icap://icap-server.net/server?arg=87 ICAP/1.0
 Host: icap-server.net
@@ -160,6 +164,9 @@ Sorry, you are not allowed to access that naughty content.
 0
 ```
 ### The RESPMOD method
+RESPMOD is called when a HTTP response must be modified - such as checking to-be-downloaded 
+files for viruses, watermarking images or audio files, placing ad banners, or otherwise 
+modifying the content and/or the headers of the request.
 ```
 RESPMOD icap://icap.example.org/satisf ICAP/1.0
 Host: icap.example.org
@@ -215,6 +222,38 @@ Examples
 For more examples you can check [examples](https://github.com/Peoplecantfly/icapserver/tree/master/examples) folder.  
 *NB! In this realization of ICAP server you should use one "service name" for all methods, 
 but basicly it depends on ICAP client realization.*
+
+#### There are information you can get from the ICAP request by examining certain fields of the handler object:
+
+* command: the current ICAP command
+* enc_req: encapsulated request line, list with 3 elements
+* enc_req_headers: encapsulated request headers, dictionary of lists
+* enc_res_status: encapsulated response status
+* enc_res_headers: encapsulated response headers
+* has_body: True, if the ICAP request has a body
+* encapsulated: contains the "Encapsulated:" header's content as a dict
+* ieof: True, if read_chunk() encounters an ieof chunk extension
+* request_uri: contains the full request URI of the ICAP request
+* preview: None, or an integer that arrived in the Preview header
+* allow: Contains a set() of Allow:-ed stuff
+* icap_response_code: contains the response code.
+
+There are several helper methods that can be called while serving a
+requests:
+
+* send_error(error_code): Sends and entire ICAP error response
+* no_adaptation_required(): Sends 204 No adaptation to the client.
+* cont(): Sends an ICAP 100 Continue response to the client.
+* read_chunk(): Reads a chunk from the client. Be aware that this call  
+	blocks. If there is no available data on the line, and Connection:  
+	keep-alive is used, it will cause the server to hang.
+* set_icap_response(code): Sets the ICAP response.
+* set_enc_status(status): Sets the encapsulated status line.
+* set_enc_request(request): Sets the encapsulated request line.
+* set_enc_header(header, value): Set an encapsulated header.
+* set_icap_header(header, value): Set an ICAP header.
+* send_chunk(data): send a chunk to the client.
+
 ### Example 1: 204 No content
 204 No content is for No content adaptation required.  
 So this example sends 204 No content for both REQMOD and RESPMOD.
