@@ -223,7 +223,7 @@ For more examples you can check [examples](https://github.com/Peoplecantfly/icap
 *NB! In this realization of ICAP server you should use one "service name" for all methods, 
 but basicly it depends on ICAP client realization.*
 
-#### There are information you can get from the ICAP request by examining certain fields of the handler object:
+#### There is information you can get from the ICAP request by examining certain fields of the handler object:
 
 * command: the current ICAP command
 * enc_req: encapsulated request line, list with 3 elements
