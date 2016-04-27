@@ -30,7 +30,7 @@ For more infromation see [RFC 3507](https://tools.ietf.org/html/rfc3507)
 
 Usage
 -----
-For more info check [Tutorial](https://github.com/Peoplecantfly/icapserver/blob/master/TUTORIAL.md)
+For more information check [Tutorial](https://github.com/Peoplecantfly/icapserver/blob/master/TUTORIAL.md)
 
 Just import stuff from the icapserver package, extend the protocol handler 
 class and start the server:
@@ -88,4 +88,4 @@ except KeyboardInterrupt:
 	server.stop()
 	print "Finished"
 ```
-For more info check [Tutorial](https://github.com/Peoplecantfly/icapserver/blob/master/TUTORIAL.md)
+For more information check [Tutorial](https://github.com/Peoplecantfly/icapserver/blob/master/TUTORIAL.md)
