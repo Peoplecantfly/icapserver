@@ -15,7 +15,7 @@ import logging
 import urlparse
 import SocketServer
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 __all__ = ['ICAPServer', 'BaseICAPRequestHandler', 'ICAPError']
 
@@ -715,5 +715,43 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 				self.send_chunk(chunk)
 				if chunk == '':
 					break
+
+def main(HandlerClass = BaseICAPRequestHandler, ServerClass = ICAPServer):
+	"""
+	This runs an ICAP server on port 13440 (or the first command line argument).
+	"""
+
+	def example_OPTIONS(self):
+		self.set_icap_response(200)
+		self.set_icap_header('Methods', 'RESPMOD, REQMOD')
+		self.set_icap_header('Service', 'ICAP Server' + ' ' + self._server_version)
+		self.set_icap_header('Options-TTL', '3600')
+		self.send_headers(False)
+
+	def example_REQMOD(self):
+		self.no_adaptation_required()
+
+	def example_RESPMOD(self):
+		self.no_adaptation_required()
+
+	HandlerClass.example_OPTIONS = example_OPTIONS
+	HandlerClass.example_REQMOD = example_REQMOD
+	HandlerClass.example_RESPMOD = example_RESPMOD
+
+	if sys.argv[1:]:
+		port = 	int(sys.argv[1])
+	else:
+		port = 13440
+	server_address = ('', port)
+
+	icap_server = ServerClass(server_address, HandlerClass)
+	
+	sa = icap_server.socket.getsockname()
+	print "Serving ICAP on", sa[0], "port", sa[1]
+	icap_server.serve_forever()
+
+
+if __name__ == '__main__':
+	main()
 
 # ===================================================================================================================== #
