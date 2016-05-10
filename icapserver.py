@@ -229,7 +229,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 	def set_enc_request(self, request):
 		""" 
-		Set encapsulated request line in response
+		Set encapsulated request line in response.
 		ICAP responses can only contain one encapsulated header section.
 		Such section is either an encapsulated HTTP request, or a
 		response. This method can be called to set encapsulated HTTP
@@ -242,12 +242,57 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 	def set_enc_header(self, header, value):
 		""" 
-		Set an encapsulated header to the given value
+		Set an encapsulated header to the given value.
 		Multiple sets will cause the header to be sent multiple times.
 		"""
+		if not isinstance(header, str):
+			raise ICAPError(500, 'Header must be a string, not %s.' % type(header))
+
+		if not isinstance(value, str):
+			raise ICAPError(500, 'Header value must be a string, not %s.' % type(value))
+
 		self.enc_headers[header] = self.enc_headers.get(header, []) + [value]
 		msg = 'Encapsulated header: %s : %s' % (header, value)
 		LOG.debug(msg)
+
+	def update_enc_header(self, header, value):
+		"""
+		Update an encapsulated header to the given value
+		"""
+
+		if not isinstance(header, str):
+			raise ICAPError(500, 'Header must be a string, not %s.' % type(header))
+
+		if not isinstance(value, str):
+			raise ICAPError(500, 'Header value must be a string, not %s.' % type(value))
+
+		for k in self.enc_headers:
+			if k.lower() == header.lower():
+				self.enc_headers[k] = [value]
+				msg = 'Encapsulated header %s updated to the new value %s' % (header, value)
+				LOG.debug(msg)
+				return
+
+		msg = 'Encapsulated header %s not found' % header
+		LOG.error(msg)
+
+	def delete_enc_header(self, header):
+		"""
+		Delete an encapsulated header.
+		"""
+
+		if not isinstance(header, str):
+			raise ICAPError(500, 'Header must be a string, not %s.' % type(header))
+
+		for k in self.enc_headers:
+			if k.lower() == header.lower():
+				del self.enc_headers[k]
+				msg = 'Encapsulated header %s deleted' % header
+				LOG.debug(msg)
+				return
+
+		msg = 'Encapsulated header %s not found' % header
+		LOG.error(msg)
 
 	def set_icap_response(self, code, message=None):
 		""" 
@@ -275,13 +320,58 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		Multiple sets will cause the header to be sent multiple times.
 		"""
 
+		if not isinstance(header, str):
+			raise ICAPError(500, 'Header must be a string, not %s.' % type(header))
+
+		if not isinstance(value, str):
+			raise ICAPError(500, 'Header value must be a string, not %s.' % type(value))
+
 		self.icap_headers[header] = self.icap_headers.get(header, []) + [value]
 		msg = 'ICAP header: %s : %s' % (header, value)
 		LOG.debug(msg)
 
+	def update_icap_header(self, header, value):
+		"""
+		Update an ICAP header to the given value
+		"""
+
+		if not isinstance(header, str):
+			raise ICAPError(500, 'Header must be a string, not %s.' % type(header))
+
+		if not isinstance(value, str):
+			raise ICAPError(500, 'Header value must be a string, not %s.' % type(value))
+
+		for k in self.icap_headers:
+			if k.lower() == header.lower():
+				self.icap_headers[k] = [value]
+				msg = 'ICAP header %s updated to the new value %s' % (header, value)
+				LOG.debug(msg)
+				return
+
+		msg = 'ICAP header %s not found' % header
+		LOG.error(msg)
+
+	def delete_icap_header(self, header):
+		"""
+		Delete an existing ICAP header.
+		"""
+
+		if not isinstance(header, str):
+			raise ICAPError(500, 'Header must be a string, not %s.' % type(header))
+
+		for k in self.icap_headers:
+			if k.lower() == header.lower():
+				del self.icap_headers[k]
+				msg = 'ICAP header %s deleted' % header
+				LOG.debug(msg)
+				return
+
+		msg = 'ICAP header %s not found' % header
+		LOG.error(msg)
+
 	def send_headers(self, has_body=False):
 		""" 
-		Send ICAP and encapsulated headers
+		Send ICAP and encapsulated headers.
 		Assembles the Encapsulated header, so it's need the information
 		of wether an encapsulated message body is present.
 		"""
@@ -312,11 +402,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		enc_header_str = enc_req_stat
 		for k in self.enc_headers:
-			if not isinstance(k, str):
-				raise ICAPError(500, 'Header must be string, not %s.' % type(k))
 			for v in self.enc_headers[k]:
-				if not isinstance(v, str):
-					raise ICAPError(500, 'Header value must be string, not %s.' % type(v))
 				enc_header_str += k + ': ' + v + '\r\n'
 		if enc_header_str != '':
 			enc_header_str += '\r\n'
@@ -329,17 +415,12 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		icap_header_str = ''
 		for k in self.icap_headers:
-			if not isinstance(k, str):
-				raise ICAPError(500, 'Header must be string, not %s.' % type(k))
 			for v in self.icap_headers[k]:
-				if not isinstance(v, str):
-					raise ICAPError(500, 'Header value must be string, not %s.' % type(v))
 				icap_header_str += k + ': ' + v + '\r\n'
 				if k.lower() == 'connection' and v.lower() == 'close':
 					self.close_connection = True
 				if k.lower() == 'connection' and v.lower() == 'keep-alive':
 					self.close_connection = False
-
 		icap_header_str += '\r\n'
 
 		self.wfile.write(self.icap_response + '\r\n' + icap_header_str + enc_header_str)
@@ -437,9 +518,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 	def handle(self):
 		""" 
-		Handles a connection
-		Since we support Connection: keep-alive, moreover this is the
-		default behavior, one connection may mean multiple ICAP requests.
+		Handles a connection.
+		Connection: keep-alive is the default behavior.
 		"""
 
 		self.close_connection = False
@@ -521,7 +601,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			message = short
 
 		if not isinstance(message, str):
-			raise ICAPError(500, 'Message must be string.')
+			raise ICAPError(500, 'Message must be a string.')
 
 		msg = '[Sending Error] Code: %d, Message: %s' % (code, message)
 		LOG.error(msg)
@@ -553,7 +633,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			message = short
 
 		if not isinstance(message, str):
-			raise ICAPError(500, 'Message must be string.')
+			raise ICAPError(500, 'Message must be a string.')
 
 		# No encapsulation
 		self.enc_req = None
@@ -582,10 +662,10 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if timestamp is None:
 			timestamp = time.time()
 		year, month, day, hh, mm, ss, wd, y, z = time.gmtime(timestamp)
-		s = "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (self._weekdayname[wd], 
+		dts = "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (self._weekdayname[wd], 
 													day, self._monthname[month], year, 
 													hh, mm, ss)
-		return s
+		return dts
 
 	def address_string(self):
 		""" 

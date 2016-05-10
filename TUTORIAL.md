@@ -251,7 +251,11 @@ requests:
 * set_enc_status(status): Sets the encapsulated status line.
 * set_enc_request(request): Sets the encapsulated request line.
 * set_enc_header(header, value): Set an encapsulated header.
+* update_enc_header(header, value): Update an encapsulated header.
+* delete_enc_header(header, value): Delete an encapsulated header.
 * set_icap_header(header, value): Set an ICAP header.
+* update_icap_header(header, value): Update an ICAP header.
+* delete_icap_header(header, value): Delete an ICAP header.
 * send_chunk(data): send a chunk to the client.
 
 *NB! If you want to change POST data or add/delete something from server response body - make sure that you change 
