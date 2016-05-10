@@ -150,7 +150,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 	def read_chunk(self):
 		""" 
-		Read a HTTP chunk
+		Read a ICAP chunk
 		Also handles the ieof chunk extension defined by the ICAP
 		protocol by setting the ieof variable to True. It returns an
 		empty line if the last chunk is read. Reading after the last
@@ -193,8 +193,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 	def send_chunk(self, data):
 		""" 
 		Send a chunk of data
-		When finished writing, an empty chunk with data='' must
-		be written.
+		When finished writing, an empty chunk with data='' must be written.
 		"""
 
 		l = hex(len(data))[2:]
@@ -211,7 +210,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if self.ieof:
 			raise ICAPError(500, 'Tried to continue on ieof condition')
 
-		self.wfile.write('ICAP/1.0 100 Continue\r\n\r\n')
+		self.wfile.write(self._protocol_version + ' ' + '100 Continue\r\n\r\n')
 
 		self.eob = False
 
@@ -265,7 +264,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if not isinstance(message, str):
 			raise ICAPError(500)
 
-		self.icap_response = 'ICAP/1.0 ' + str(code) + ' ' + message
+		self.icap_response = self._protocol_version + ' ' + str(code) + ' ' + message
 		self.icap_response_code = code
 		msg = 'ICAP response: %s' % self.icap_response
 		LOG.debug(msg)
@@ -350,12 +349,11 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		Parse a request (internal).
 		The request should be stored in self.raw_requestline; the results
 		are in self.command, self.request_uri, self.request_version and self.headers.
-		Return True for success, False for failure; on failure, an
-		error is sent back.
+		Return True for success, False for failure; on failure, an error is sent back.
 		"""
 
 		self.command = None
-		self.request_version = version = 'ICAP/1.0'
+		self.request_version = version = self._protocol_version
 
 		# Default behavior is to leave connection open
 		self.close_connection = False
@@ -441,8 +439,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		""" 
 		Handles a connection
 		Since we support Connection: keep-alive, moreover this is the
-		default behavior, one connection may mean multiple ICAP
-		requests.
+		default behavior, one connection may mean multiple ICAP requests.
 		"""
 
 		self.close_connection = False
@@ -451,10 +448,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 	def handle_one_request(self):
 		""" 
-		Handle a single HTTP request.
-		You normally don't need to override this method; see the class
-		__doc__ string for information on how to handle specific HTTP
-		commands such as GET and POST.
+		Handle a single ICAP request.
 		"""
 
 		# Initialize handler state
