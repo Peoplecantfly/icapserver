@@ -277,7 +277,7 @@ class ExampleICAPHandler(BaseICAPRequestHandler):
 	def example_OPTIONS(self):
 		self.set_icap_response(200)
 		self.set_icap_header('Methods', 'RESPMOD, REQMOD')
-		self.set_icap_header('Service', 'ICAP Server 1.0')
+		self.set_icap_header('Service', 'ICAP Server' + ' ' + self._server_version)
 		self.set_icap_header('Options-TTL', '3600')
 		self.set_icap_header('Preview', '0')
 		self.send_headers(False)
@@ -331,7 +331,7 @@ class ExampleICAPHandler(BaseICAPRequestHandler):
 	def example_OPTIONS(self):
 		self.set_icap_response(200)
 		self.set_icap_header('Methods', 'RESPMOD, REQMOD')
-		self.set_icap_header('Service', 'ICAP Server 1.0')
+		self.set_icap_header('Service', 'ICAP Server' + ' ' + self._server_version)
 		self.set_icap_header('Options-TTL', '3600')
 		self.set_icap_header('Preview', '0')
 		self.send_headers(False)
@@ -414,7 +414,7 @@ class ExampleICAPHandler(BaseICAPRequestHandler):
 	def example_OPTIONS(self):
 		self.set_icap_response(200)
 		self.set_icap_header('Methods', 'RESPMOD, REQMOD')
-		self.set_icap_header('Service', 'ICAP Server 1.0')
+		self.set_icap_header('Service', 'ICAP Server' + ' ' + self._server_version)
 		self.set_icap_header('Options-TTL', '3600')
 		self.set_icap_header('Preview', '0')
 		self.send_headers(False)
