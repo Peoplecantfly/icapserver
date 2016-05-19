@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Icapserver by Peoplecantfly</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Icapserver</h1>
+      <h2 class="project-tagline">Python ICAP Server framework</h2>
+      <a href="https://github.com/Peoplecantfly/icapserver" class="btn">View on GitHub</a>
+      <a href="https://github.com/Peoplecantfly/icapserver/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/Peoplecantfly/icapserver/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="icapserver" class="anchor" href="#icapserver" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>icapserver</h1>
+
+<p>A barebone icap server written in python.
+But mostly this is a framework to write your own ICAP servers.</p>
+
+<p>I work as QA Engineer and wrote this just for my test purpuses.</p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Use <code>python seutp.py install</code> or simply copy icapserver.py file 
+onto your PYTHON_PATH or the directory of your python module.
+Also  you can install this module with pip: <code>pip install icapserver</code>.</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>For more information check <a href="https://github.com/Peoplecantfly/icapserver/blob/master/TUTORIAL.md">Tutorial</a></p>
+
+<p>Just import stuff from the icapserver package, extend the protocol handler 
+class and start the server:</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-c"># -*- coding: utf8 -*-</span>
+
+<span class="pl-k">import</span> time
+<span class="pl-k">import</span> threading
+
+<span class="pl-k">from</span> icapserver <span class="pl-k">import</span> <span class="pl-k">*</span>
+
+<span class="pl-k">class</span> <span class="pl-en">ExampleICAPHandler</span>(<span class="pl-e">BaseICAPRequestHandler</span>):
+
+    <span class="pl-k">def</span> <span class="pl-en">example_OPTIONS</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-v">self</span>.set_icap_response(<span class="pl-c1">200</span>)
+        <span class="pl-v">self</span>.set_icap_header(<span class="pl-s"><span class="pl-pds">'</span>Methods<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>RESPMOD, REQMOD<span class="pl-pds">'</span></span>)
+        <span class="pl-v">self</span>.set_icap_header(<span class="pl-s"><span class="pl-pds">'</span>Service<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>ICAP Server<span class="pl-pds">'</span></span> <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">'</span> <span class="pl-pds">'</span></span> <span class="pl-k">+</span> <span class="pl-v">self</span>._server_version)
+        <span class="pl-v">self</span>.set_icap_header(<span class="pl-s"><span class="pl-pds">'</span>Options-TTL<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>3600<span class="pl-pds">'</span></span>)
+        <span class="pl-v">self</span>.set_icap_header(<span class="pl-s"><span class="pl-pds">'</span>Preview<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>0<span class="pl-pds">'</span></span>)
+        <span class="pl-v">self</span>.send_headers(<span class="pl-c1">False</span>)
+
+    <span class="pl-k">def</span> <span class="pl-en">example_REQMOD</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-v">self</span>.no_adaptation_required()
+
+    <span class="pl-k">def</span> <span class="pl-en">example_RESPMOD</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-v">self</span>.no_adaptation_required()
+
+<span class="pl-k">class</span> <span class="pl-en">ExampleICAPServer</span>():
+
+    <span class="pl-k">def</span> <span class="pl-c1">__init__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">addr</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>, <span class="pl-smi">port</span><span class="pl-k">=</span><span class="pl-c1">13440</span>):
+        <span class="pl-v">self</span>.addr <span class="pl-k">=</span> addr
+        <span class="pl-v">self</span>.port <span class="pl-k">=</span> port
+
+    <span class="pl-k">def</span> <span class="pl-en">start</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-v">self</span>.server <span class="pl-k">=</span> ICAPServer((<span class="pl-v">self</span>.addr, <span class="pl-v">self</span>.port), ExampleICAPHandler)
+        <span class="pl-v">self</span>.thread <span class="pl-k">=</span> threading.Thread(<span class="pl-v">target</span><span class="pl-k">=</span><span class="pl-v">self</span>.server.serve_forever)
+        <span class="pl-v">self</span>.thread.start()
+        <span class="pl-k">return</span> <span class="pl-c1">True</span>
+
+    <span class="pl-k">def</span> <span class="pl-en">stop</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-v">self</span>.server.shutdown()
+        <span class="pl-v">self</span>.server.server_close()
+        <span class="pl-v">self</span>.thread.join(<span class="pl-c1">2</span>)
+        <span class="pl-k">return</span> <span class="pl-c1">True</span>
+
+
+<span class="pl-k">try</span>:
+    server <span class="pl-k">=</span> ExampleICAPServer()
+    server.start()
+    <span class="pl-c1">print</span> <span class="pl-s"><span class="pl-pds">'</span>Use Control-C to exit<span class="pl-pds">'</span></span>
+    <span class="pl-k">while</span> <span class="pl-c1">True</span>:
+        time.sleep(<span class="pl-c1">1</span>)
+<span class="pl-k">except</span> <span class="pl-c1">KeyboardInterrupt</span>:
+    server.stop()
+    <span class="pl-c1">print</span> <span class="pl-s"><span class="pl-pds">"</span>Finished<span class="pl-pds">"</span></span></pre></div>
+
+<p>For more information check <a href="https://github.com/Peoplecantfly/icapserver/blob/master/TUTORIAL.md">Tutorial</a></p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/Peoplecantfly/icapserver">Icapserver</a> is maintained by <a href="https://github.com/Peoplecantfly">Peoplecantfly</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
