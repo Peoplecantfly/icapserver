@@ -101,8 +101,8 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		415: ('Unsupported Media Type', 'Entity body in unsupported format.'),
 		416: ('Requested Range Not Satisfiable', 'Cannot satisfy request range.'),
 		417: ('Expectation Failed', 'Expected condition could not be satisfied.'),
-		451: ('451 Unavailable For Legal Reasons', 'Resource access is denied for legal reasons, \
-													e.g. censorship or government-mandated blocked access.'),
+		451: ('451 Unavailable For Legal Reasons', 'Resource access is denied for legal reasons,' \
+													'e.g. censorship or government-mandated blocked access.'),
 
 		500: ('Internal Server Error', 'Server got itself in trouble'),
 		501: ('Not Implemented', 'Server does not support this operation'),
