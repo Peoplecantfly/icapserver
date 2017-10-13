@@ -5,6 +5,8 @@ import threading
 
 from icapserver import *
 
+set_logger('debug')
+
 class ExampleICAPHandler(BaseICAPRequestHandler):
 
 	def example_OPTIONS(self):

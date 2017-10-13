@@ -17,11 +17,36 @@ import SocketServer
 
 __version__ = "1.2"
 
-__all__ = ['ICAPServer', 'BaseICAPRequestHandler', 'ICAPError']
+__all__ = ['ICAPServer', 'BaseICAPRequestHandler', 'ICAPError', 'set_logger']
 
+
+# ===================================================================================================================== #
+# Logging settings
+# ===================================================================================================================== #
 LOG = logging.getLogger(__name__)
 level = logging.INFO
-logging.basicConfig(level=level, format="[%(asctime)s][%(name)s][%(levelname)s] %(message)s", filename="")
+logging.basicConfig(level=level, format='[%(asctime)s][%(name)s][%(levelname)s] %(message)s', filename='')
+
+
+def set_logger(lvl='info'):
+	"""
+	Set logging level.
+	"""
+
+	if lvl.lower() not in ['error', 'info', 'debug']:
+		raise ICAPError(500, 'Incorrect logging level.')
+
+	if lvl.lower() == 'error':
+		LOG.setLevel(logging.ERROR)
+
+	if lvl.lower() == 'info':
+		LOG.setLevel(logging.INFO)
+
+	if lvl.lower() == 'debug':
+		LOG.setLevel(logging.DEBUG)
+
+# ===================================================================================================================== #
+
 
 class ICAPError(Exception):
 	""" 
@@ -37,12 +62,15 @@ class ICAPError(Exception):
 		msg = 'Code: %d Message: %s' % (code, message)
 		LOG.error(msg)
 
+
 class ICAPServer(SocketServer.TCPServer):
 	""" 
 	ICAP Server
 	This is a simple TCPServer, that allows address reuse.
 	"""
+
 	allow_reuse_address = 1
+
 
 class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 	""" 
@@ -117,6 +145,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 	_monthname = [None,
 				'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
 				'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 
 	def _read_status(self):
 		""" 
@@ -715,6 +744,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 				self.send_chunk(chunk)
 				if chunk == '':
 					break
+
 
 def main(HandlerClass = BaseICAPRequestHandler, ServerClass = ICAPServer):
 	"""
