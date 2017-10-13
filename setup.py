@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
 	name='icapserver',
-	version='1.2',
+	version='1.3',
 	description='ICAP Server framework',
 	author='Nikolay Ivanov',
 	author_email='peoplecantfly@gmail.com',
