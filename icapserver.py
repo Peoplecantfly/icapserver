@@ -12,8 +12,8 @@ import random
 import socket
 import string
 import logging
-import urlparse
-import SocketServer
+from urllib.parse import urlparse
+import socketserver
 
 __version__ = "1.3"
 
@@ -63,7 +63,7 @@ class ICAPError(Exception):
 		LOG.error(msg)
 
 
-class ICAPServer(SocketServer.TCPServer):
+class ICAPServer(socketserver.TCPServer):
 	""" 
 	ICAP Server
 	This is a simple TCPServer, that allows address reuse.
@@ -72,7 +72,7 @@ class ICAPServer(SocketServer.TCPServer):
 	allow_reuse_address = 1
 
 
-class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
+class BaseICAPRequestHandler(socketserver.StreamRequestHandler):
 	""" 
 	ICAP request handler base class.
 	You have to subclass it and provide methods for each service
@@ -151,14 +151,14 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		""" 
 		Read a HTTP or ICAP status line from input stream.
 		"""
-		status = self.rfile.readline().strip().split(' ', 2)
+		status = self.rfile.readline().strip().split(b' ', 2)
 		LOG.debug(status)
 		return status
 
 	def _read_request(self):
 		""" Read a HTTP or ICAP request line from input stream.
 		"""
-		request = self.rfile.readline().strip().split(' ', 2)
+		request = self.rfile.readline().strip().split(b' ', 2)
 		LOG.debug(request)
 		return request
 
@@ -170,9 +170,9 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		headers = {}
 		while True:
 			line = self.rfile.readline().strip()
-			if line == '':
+			if line == b'':
 				break
-			k, v = line.split(':', 1)
+			k, v = line.split(b':', 1)
 			headers[k.lower()] = headers.get(k.lower(), []) + [v.strip()]
 		LOG.debug(headers)
 		return headers
@@ -199,7 +199,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		line = line.strip()
 
-		arr = line.split(';', 1)
+		arr = line.split(b';', 1)
 
 		chunk_size = 0
 		try:
@@ -239,7 +239,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if self.ieof:
 			raise ICAPError(500, 'Tried to continue on ieof condition')
 
-		self.wfile.write(self._protocol_version + ' ' + '100 Continue\r\n\r\n')
+		self.wfile.write((self._protocol_version + ' ' + '100 Continue\r\n\r\n').encode())
 
 		self.eob = False
 
@@ -419,14 +419,14 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if not has_body:
 			enc_body = 'null-body='
 
-		if not self.icap_headers.has_key('ISTag'):
+		if 'ISTag' not in self.icap_headers:
 			self.set_icap_header('ISTag', ''.join([random.choice(string.ascii_uppercase \
-																+ string.digits) for x in xrange(32)]))
+																+ string.digits) for x in range(32)]))
 
-		if not self.icap_headers.has_key('Date'):
+		if 'Date' not in self.icap_headers:
 			self.set_icap_header('Date', self.date_time_string())
 
-		if not self.icap_headers.has_key('Server'):
+		if 'Server' not in self.icap_headers:
 			self.set_icap_header('Server', self.version_string())
 
 		enc_header_str = enc_req_stat
@@ -452,7 +452,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 					self.close_connection = False
 		icap_header_str += '\r\n'
 
-		self.wfile.write(self.icap_response + '\r\n' + icap_header_str + enc_header_str)
+		self.wfile.write((self.icap_response + '\r\n' + icap_header_str + enc_header_str).encode())
 
 	def parse_request(self):
 		""" 
@@ -468,7 +468,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		# Default behavior is to leave connection open
 		self.close_connection = False
 
-		requestline = self.raw_requestline.rstrip('\r\n')
+		requestline = self.raw_requestline.rstrip(b'\r\n').decode()
 		self.requestline = requestline
 
 		words = requestline.split()
@@ -480,7 +480,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		if version[:5] != 'ICAP/':
 			raise ICAPError(400, "Bad request protocol, only accepting ICAP")
 
-		if command not in  ['OPTIONS', 'REQMOD', 'RESPMOD']:
+		if command not in ['OPTIONS', 'REQMOD', 'RESPMOD']:
 			raise ICAPError(501, "command %r is not implemented" % command)
 
 		try:
@@ -512,38 +512,38 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 
 		self.encapsulated = {}
 		if self.command in ['RESPMOD', 'REQMOD']:
-			_encapsulated = self.headers.get('encapsulated', [''])[0].split(',')
+			_encapsulated = self.headers.get(b'encapsulated', [b''])[0].split(b',')
 			if not _encapsulated:
 				raise ICAPError(500, "Encapsulated is empty.")
 			for enc in _encapsulated:
 				try:
-					k, v = enc.strip().split('=')
+					k, v = enc.strip().split(b'=')
 				except:
 					raise ICAPError(500, "Encapsulated is malformed.")
 				self.encapsulated[k] = int(v)
 
 		self.preview = self.headers.get('preview', [None])[0]
-		self.allow = [x.strip() for x in self.headers.get('allow', [''])[0].split(',')]
+		self.allow = [x.strip() for x in self.headers.get(b'allow', [b''])[0].split(b',')]
 
 		if self.command == 'REQMOD':
-			if self.encapsulated.has_key('req-hdr'):
+			if b'req-hdr' in self.encapsulated:
 				self.enc_req = self._read_request()
 				self.enc_req_headers = self._read_headers()
-			if self.encapsulated.has_key('req-body'):
+			if b'req-body' in self.encapsulated:
 				self.has_body = True
 		elif self.command == 'RESPMOD':
-			if self.encapsulated.has_key('req-hdr'):
+			if b'req-hdr' in self.encapsulated:
 				self.enc_req = self._read_request()
 				self.enc_req_headers = self._read_headers()
-			if self.encapsulated.has_key('res-hdr'):
+			if b'res-hdr' in self.encapsulated:
 				self.enc_res_status = self._read_status()
 				self.enc_res_headers = self._read_headers()
-			if self.encapsulated.has_key('res-body'):
+			if b'res-body' in self.encapsulated:
 				self.has_body = True
 		# Else: OPTIONS. No encapsulation.
 
 		# Parse service name
-		self.servicename = urlparse.urlparse(self.request_uri)[2].strip('/')
+		self.servicename = urlparse(self.request_uri)[2].strip('/')
 
 	def handle(self):
 		""" 
@@ -566,7 +566,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		self.enc_res_status = None
 		self.enc_res_headers = {}
 		self.has_body = False
-		self.servicename = None
+		self.servicename = ""
 		self.encapsulated = {}
 		self.ieof = False
 		self.eob = False
@@ -579,7 +579,7 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		self.enc_status = None
 		self.enc_request = None
 
-		self.icap_response_code = None
+		self.icap_response_code = 0
 
 		try:
 			self.raw_requestline = self.rfile.readline(65537)
@@ -607,8 +607,9 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			LOG.error(msg)
 			self.close_connection = True
 		except ICAPError as e:
-			self.send_error(e.code, e.message)
-		except:
+			self.send_error(e.code, e.args[0])
+		except Exception as e:
+			LOG.error(e)
 			self.send_error(500)
 
 	def send_error(self, code, message=None):
@@ -714,11 +715,11 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 		is returned to the client.
 		"""
 
-		if '204' in self.allow or self.preview != None:
+		if b'204' in self.allow or self.preview != None:
 			# We MUST read everything the client sent us
 			if self.has_body:
 				while True:
-					if self.read_chunk() == '':
+					if self.read_chunk() == b'':
 						break
 			self.set_icap_response(204)
 			self.send_headers()
@@ -727,10 +728,10 @@ class BaseICAPRequestHandler(SocketServer.StreamRequestHandler):
 			# but it's sure there's no preview
 			self.set_icap_response(200)
 
-			self.set_enc_status(' '.join(self.enc_res_status))
+			self.set_enc_status((b' '.join(self.enc_res_status)).decode())
 			for h in self.enc_res_headers:
 				for v in self.enc_res_headers[h]:
-					self.set_enc_header(h, v)
+					self.set_enc_header(h.decode(), v.decode())
 
 			if not self.has_body:
 				self.send_headers(False)
@@ -769,7 +770,7 @@ def main(HandlerClass = BaseICAPRequestHandler, ServerClass = ICAPServer):
 	HandlerClass.example_RESPMOD = example_RESPMOD
 
 	if sys.argv[1:]:
-		port = 	int(sys.argv[1])
+		port = int(sys.argv[1])
 	else:
 		port = 13440
 	server_address = ('', port)
@@ -777,7 +778,7 @@ def main(HandlerClass = BaseICAPRequestHandler, ServerClass = ICAPServer):
 	icap_server = ServerClass(server_address, HandlerClass)
 	
 	sa = icap_server.socket.getsockname()
-	print "Serving ICAP on", sa[0], "port", sa[1]
+	print("Serving ICAP on", sa[0], "port", sa[1])
 	icap_server.serve_forever()
 
 
